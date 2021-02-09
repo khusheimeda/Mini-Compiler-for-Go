@@ -11,9 +11,8 @@ Installing flex-
 Lexing/Lex-
 1. ```sudo nano lexer_file_name.l```. Lex files end with .l
 2. ```flex lexer_file_name.l```
-3. ```cc lex.yy.c -ll```. -ll to find main within lexer
-   ```cc c_file_name.c lexx.yy.c```
-4. ```./a.out```
+3. ```g++ scanner.cpp lex.yy.c```
+4. ```./a.out program_name.go```
 
 Parsing/Yacc-
 1. ```sudo nano name.y```
