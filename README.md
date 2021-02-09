@@ -4,6 +4,9 @@ Mini-compiler for Go using lex and yacc
 Linux environment-
 1. Use Ubuntu VM or install Multipass
 
+Installing go-
+1. refer to https://www.youtube.com/watch?v=G3PvTWRIhZA&list=PLQVvvaa0QuDeF3hP0wQoSxpkqgRcgxMqX
+
 Installing flex-
 1. ```sudo apt-get update```
 2. ```sudo apt-get install flex```	
