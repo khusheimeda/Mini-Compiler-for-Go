@@ -1,24 +1,28 @@
 # Mini-Compiler-for-Go
 Mini-compiler for Go using lex and yacc
 
+Windows environment-
+1. Click on Setup from http://gnuwin32.sourceforge.net/packages/flex.htm
+2. Run the flex application to complete installation.
+
 Linux environment-
 1. Use Ubuntu VM or install Multipass
 
 Installing go-
 1. refer to https://www.youtube.com/watch?v=G3PvTWRIhZA&list=PLQVvvaa0QuDeF3hP0wQoSxpkqgRcgxMqX
 
-Installing flex-
+Installing flex (Linux)-
 1. ```sudo apt-get update```
 2. ```sudo apt-get install flex```	
 
 Lexing/Lex-
-1. ```sudo nano lexer_file_name.l```. Lex files end with .l
+1. For Linux, ```sudo nano lexer_file_name.l```. For Windows, install nano; it will already be present in ProgramFiles/Git/usr/bin as nano.exe if Git is installed. Lex files end with .l
 2. ```flex lexer_file_name.l```
 3. ```g++ scanner.cpp lex.yy.c```
 4. ```./a.out program_name.go```
 
 Parsing/Yacc-
-1. ```sudo nano name.y```
+1. For Linux, ```sudo nano name.y```. For windows, ```path_to_nano.exe name.y``` 
 2. ```yacc -d name.y```. -d is to generate y.tab.h. The actual parser output is in y.tab.c
 3. Next step is to run lex. ```lex name.l```
 4. Compile both together. ```gcc lex.yy.c y.tab.c```
