@@ -19,7 +19,7 @@ Lexing/Lex-
 1. For Linux, ```sudo nano lexer_file_name.l```. For Windows, install nano; it will already be present in ProgramFiles/Git/usr/bin as nano.exe if Git is installed. Lex files end with .l
 2. ```flex lexer_file_name.l```
 3. ```g++ scanner.cpp lex.yy.c```
-4. ```./a.out program_name.go```
+4. ```./a.out program_name.go```. For Windows, ```a.exe program_name.go```
 
 Parsing/Yacc-
 1. For Linux, ```sudo nano name.y```. For windows, ```path_to_nano.exe name.y``` 
