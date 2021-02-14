@@ -292,6 +292,29 @@ void display()
    	return;
 }
 
+char* substr(const char *src, int m, int n)
+{
+    // get length of the destination string
+    int len = n - m;
+ 
+    // allocate (len + 1) chars for destination (+1 for extra null character)
+    char *dest = (char*)malloc(sizeof(char) * (len + 1));
+ 
+    // extracts characters between m'th and n'th index from source string
+    // and copy them into the destination string
+    for (int i = m; i < n && (*(src + i) != '\0'); i++)
+    {
+        *dest = *(src + i);
+        dest++;
+    }
+ 
+    // null-terminate the destination string
+    *dest = '\0';
+ 
+    // return the destination string
+    return dest - len;
+}
+
 int main()
 {
 	int scan, slcline=0, mlc=0, mlcline=0, dq=0, dqline=0;
@@ -319,6 +342,11 @@ int main()
 		}
 		if(scan==69 && mlc==0)
 		{
+			if(strlen(yytext)>31)
+			{
+				char * temp = substr(yytext, 0, 31);
+				yytext = temp;
+			}
 			printf("%s\t\t\tIDENTIFIER\t\t\tLine %d\n", yytext, lineno);
 			insertToHash(yytext, "IDENTIFIER");
 		}
@@ -374,8 +402,12 @@ int main()
 		}
 		if(scan==71 && mlc==0)
 		{
-			printf("%s\t\t\tFLOATING POINT CONSTANT\t\tLine %d\n", yytext, lineno);
-			insertToHash(yytext, "FLOATING POINT CONSTANT");
+			char *pend;
+			float in_float = strtof(yytext, &pend);
+			char buf[100];
+			gcvt(in_float, 32, buf);
+			printf("%f\t\t\tFLOATING POINT CONSTANT\t\tLine %d\n", in_float, lineno);
+			insertToHash(buf, "FLOATING POINT CONSTANT");
 		}
 		if(scan==78 && mlc==0)
 		{
