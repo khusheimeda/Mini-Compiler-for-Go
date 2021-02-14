@@ -4,6 +4,8 @@ Mini-compiler for Go using lex and yacc
 Windows environment-
 1. Click on Setup from http://gnuwin32.sourceforge.net/packages/flex.htm
 2. Run the flex application to complete installation.
+3. Download bison from https://ecodehacker.com/courses/programming-language-pragmatics/lectures/2062783
+4. Setup following https://www.youtube.com/watch?v=0MUULWzswQE&ab_channel=PratikKataria
 
 Linux environment-
 1. Use Ubuntu VM or install Multipass
@@ -23,7 +25,7 @@ Lexing/Lex-
 
 Parsing/Yacc-
 1. For Linux, ```sudo nano name.y```. For windows, ```path_to_nano.exe name.y``` 
-2. ```yacc -d name.y```. -d is to generate y.tab.h. The actual parser output is in y.tab.c
+2. For Linux, ```yacc -d name.y```. For Windows, ```bison -d name.y```. -d is to generate y.tab.h. The actual parser output is in y.tab.c
 3. Next step is to run lex. ```lex name.l```
 4. Compile both together. ```gcc lex.yy.c y.tab.c```
 5. ```./a.out```
