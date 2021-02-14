@@ -311,6 +311,7 @@ int main()
 				printf("\n******** ERROR!! INCOMPLETE STRING at Line %d ********\n\n", dqline);
 			dq=0;
 		}
+		lineno = yylineno;
 		if((scan>=48 && scan<=68) && mlc==0)
 		{
 			printf("%s\t\t\tKEYWORD\t\t\t\tLine %d\n", yytext, lineno);
