@@ -53,7 +53,7 @@ struct ast{
         std::string result;
         Quadruple(std::string _op, std::string _arg1, std::string _arg2, std::string _result): op(_op), arg1(_arg1), arg2(_arg2), result(_result){};
     };
-     void get_icg_for_if();
+     void get_icg_for_if(SymbolTableTree *node, std::vector<Quadruple> &icg, std::map<string, SymbolTableTree> &mapper);
     void get_icg_rec(SymbolTableTree *, std::vector<Quadruple> &icg, std::map<string, SymbolTableTree> &mapper);
     std::string get_icg_for_exp(SymbolTableTree *node, std::vector<Quadruple> &icg, std::map<string, SymbolTableTree> &mapper);
     void get_icg_for_var_def(SymbolTableTree *node, std::vector<Quadruple> &icg, std::map<string, SymbolTableTree> &mapper);
@@ -87,7 +87,7 @@ struct ast{
         }
         else if(node->nodeType=="If"){
             // cout<<"lol4\n";
-            get_icg_for_if();
+            get_icg_for_if(node,icg, mapper);
         }
         else if(node->nodeType=="While"){
             // cout<<"lol4\n";
@@ -294,8 +294,26 @@ struct ast{
         // cout<<"lol200\n";
     }
     
-    void get_icg_for_if()
-    {}
+    void get_icg_for_if(SymbolTableTree *node, std::vector<Quadruple> &icg, std::map<string, SymbolTableTree> &mapper)
+    {
+        std::string tmpv = get_icg_for_exp(node -> child[0] -> child[2], icg, mapper);
+        auto l1 = "l"+std::to_string(label_counter++);
+        auto l2 = "l"+std::to_string(label_counter++);
+        stk1.push_back(l1);
+        stk2.push_back(l2);
+        Quadruple newl("Lable", "", "", l1);
+        Quadruple newq("ifFalse", tmpv, "", l2);
+        icg.push_back(newl);
+        icg.push_back(newq);
+        if(node -> Nchildren == 2) {get_icg_rec(node->child[1], icg, mapper);}
+         //   Quadruple newg("goto", "", "", l2);
+          //  icg.push_back(newg);
+       // }"l"+std::to_string(label_counter++);
+        Quadruple newl2("Lable", "", "", l2);
+        icg.push_back(newl2);
+        stk1.pop_back();
+        stk2.pop_back();
+    }
     void get_icg_for_while(SymbolTableTree *node, std::vector<Quadruple> &icg, std::map<string, SymbolTableTree> &mapper){
         std::string tmpv = get_icg_for_exp(node -> child[0] -> child[2], icg, mapper);
         auto l1 = "l"+std::to_string(label_counter++);
