@@ -14,10 +14,11 @@
 #include <stdarg.h>
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 #include "sttree"
 
-#include "qicg"
+#include "qicg.cpp"
 using namespace std;
 
 extern "C" {
@@ -35,8 +36,8 @@ extern int line_number;
 int scope = 0;
 int valid = 1;
 int max_scope = 0;
-string tab="  ";
-string indent = "";
+std::string tab="  ";
+std::string indent = "";
 FILE *file;
 int scope_nn = 0;
 char scopeStack[1000];
@@ -48,7 +49,8 @@ char lexChar[1000];
 int isExpError = 0;
 
 
-string none = "none";
+std::string none = "none";
+//struct SymbolTableTree;
 
 
 void incIndent(){
@@ -64,18 +66,18 @@ int scopeChildren = 0;
 
 
 
-map<string, SymbolTableTree> mapper;
-map<string, int> mm;
+map<std::string, SymbolTableTree> mapper;
+map<std::string, int> mm;
 void DisplaySymbolTable(struct SymbolTableTree* node){
 
     if(node !=NULL){
         int nu = mm[node->nodeType]++;
-        cout<<(node->nodeType+"("+to_string(nu)+")")<<"\n";
+        std::cout<<(node->nodeType+"("+to_string(nu)+")")<<"\n";
         if(node->nodeType == "Identifier"){
-            cout<<("Identifier("+to_string(nu)+")`")<<(node->name + "(" + to_string(mm[node->name]++)+")")<<"\n";
+            std::cout<<("Identifier("+to_string(nu)+")`")<<(node->name + "(" + to_string(mm[node->name]++)+")")<<"\n";
         }
         else if(node->Nchildren == 0 && node->nodeType != "Empty"){
-            cout<<(node->nodeType+"("+to_string(nu)+")`")<<(node->value + "(" + to_string(mm[node->value]++)+")")<<"\n";
+            std::cout<<(node->nodeType+"("+to_string(nu)+")`")<<(node->value + "(" + to_string(mm[node->value]++)+")")<<"\n";
         }
         
         else{
@@ -83,10 +85,10 @@ void DisplaySymbolTable(struct SymbolTableTree* node){
                 int i;
                 
                 for (i=0;i<node->Nchildren;i++){
-                    cout<<(node->nodeType+"("+to_string(nu)+")`");
+                    std::cout<<(node->nodeType+"("+to_string(nu)+")`");
                     DisplaySymbolTable(node->child[i]);
                     // if(i != node->Nchildren - 1){
-                    //     cout<<",";
+                    //     std::cout<<",";
                     // }
                 }
             }
@@ -99,7 +101,7 @@ void DisplaySymbolTable(struct SymbolTableTree* node){
 
 
 void PrintSymbolTable(struct SymbolTableTree* node){
-    if(node!=NULL && (node->name!=none) || (node->value!=none))cout<<node->lineNo<<","<<node->nodeType<<","<<
+    if(node!=NULL && (node->name!=none) || (node->value!=none))std::cout<<node->lineNo<<","<<node->nodeType<<","<<
         node->name<<","<<
         node->value<<","<< 
         node->dataType<<","<<
@@ -114,11 +116,11 @@ void PrintSymbolTable(struct SymbolTableTree* node){
 
 
 
-// void printST(map<int, map<string, SymbolTableTree>> m)
+// void printST(map<int, map<std::string, SymbolTableTree>> m)
 // {
 //     for(auto i : m){
 //         for(auto j : i.second){
-//             cout<<j.second.lineNo<<","<<j.second.nodeType<<","<<
+//             std::cout<<j.second.lineNo<<","<<j.second.nodeType<<","<<
 //             j.first<<","<<
 //             j.second.value<<","<< 
 //             j.second.dataType<<","<<
@@ -143,7 +145,7 @@ void assignString(char *a, char *b){
 
 
 
-struct SymbolTableTree * createEntry(int lineNo , string nodeType, string name, string value, string dataType, int Nchildren, ...){
+struct SymbolTableTree * createEntry(int lineNo , std::string nodeType, std::string name, std::string value, std::string dataType, int Nchildren, ...){
     struct SymbolTableTree * node = (struct SymbolTableTree*) malloc(sizeof(struct SymbolTableTree));
     ( node->nodeType = nodeType);
     ( node->name = name);
@@ -165,21 +167,21 @@ struct SymbolTableTree * createEntry(int lineNo , string nodeType, string name, 
 }
 
 
-struct SymbolTableTree *makeOpNode(string a, string b, int lineNo){
+struct SymbolTableTree *makeOpNode(std::string a, std::string b, int lineNo){
     return createEntry(lineNo, a, none, b, none, 0);
 }
-struct SymbolTableTree *makeOpNodeType(string a, string b, int lineNo){
+struct SymbolTableTree *makeOpNodeType(std::string a, std::string b, int lineNo){
     return createEntry(lineNo, a, none, none, b, 0);
 }
 
 struct SymbolTableTree* error_taker;
-string lastChar;
+std::string lastChar;
 
 
 int getParentScope(struct SymbolTableTree *node, int scp);
 void trimLeading(char * str);
 void trimLeading2(char * str);
-void check3(string name, struct SymbolTableTree *node, int *flag, string& dataType);
+void check3(std::string name, struct SymbolTableTree *node, int *flag, std::string& dataType);
 void check2(struct SymbolTableTree*node);
 void checkParan(char ttt);
 void checkScope(char ttt);
@@ -214,10 +216,9 @@ void printST();
 %token <str> T_CLOSE_SCOPE;
 %token <str> T_OPEN_SCOPE;
 %token <str> T_IDENTIFIER;
+%token <str> T_IF;
 %token <str> T_WHILE;
 %token <str> T_SWITCH;
-%token <str> T_IF;
-%token <str> T_ELSE;
 %token <str> T_CASE;
 %token <str> T_DEFAULT;
 %token <str> T_RETURN;
@@ -250,8 +251,7 @@ void printST();
 
 
 %type<stt> CPro Main BasicScope Scope VariableDefine Expression IOStatement Scope2 Scope3 LoopScope2 Ids AssignOp AssignInOp Assign2 Expression4 error
-//%type<stt> While WhileHead Switch If IfBody Ifhead SwitchBody SwitchHead CaseHead DefaultHead OpenScope OpenParan CloseScope Expression3 PrintInsider Operation
-%type<stt> While WhileHead Switch If SwitchBody SwitchHead CaseHead DefaultHead OpenScope OpenParan CloseScope Expression3 PrintInsider Operation
+%type<stt> If IfHead While WhileHead Switch SwitchBody SwitchHead CaseHead DefaultHead OpenScope OpenParan CloseScope Expression3 PrintInsider Operation
 %type<stt> CloseParan BinaryFOp Colon SemiColon Comma Case default Value Number Unary Assign Operand UnaryOp Id Scope4
 
 
@@ -274,9 +274,9 @@ Main:						T_DEF T_MAIN OpenParan CloseParan OpenScope Scope CloseScope {$$ = cr
 BasicScope:					VariableDefine {$$ = $1;}
 						|	Expression3 {$$ =  $1;}
 						|	IOStatement {$$ = $1;}
+                        |   If{$$=$1;}
                         |   While {$$ = $1;}
                         |   Switch {$$ = $1;}
-                        | If	{$$ = $1;}
 						|	SemiColon {$$ = createEntry(yylineno, "Extra_SemiColon", none, ";", none,0);error_taker = $$;}
                         
 
@@ -305,28 +305,16 @@ Scope3:                     OpenScope Scope4 CloseScope {$$ = createEntry(yyline
 LoopScope2:					Scope2 {$$ = $1;}
 
 
+If:                         IfHead OpenScope CloseScope {$$ = createEntry(yylineno, "If", none, none, none, 3, $1, $2,$3);error_taker = $$;}
 
+IfHead:                     T_IF OpenParan Expression CloseParan {$$ = createEntry(yylineno, "IfHead", none, none, none, 4, makeOpNode("IfKey", "If",yylineno), $2, $3, $4);error_taker = $$;}
+                   
 
 While:						WhileHead Scope3 {$$ = createEntry(yylineno, "While", none, none, none, 2, $1, $2);error_taker = $$;}
     					|	WhileHead OpenScope CloseScope {$$ = createEntry(yylineno, "While", none, none, none, 3, $1, $2, $3);error_taker = $$;}
 						|	WhileHead LoopScope2 {$$ = createEntry(yylineno, "While", none, none, none, 2, $1, $2);error_taker = $$;}
 
-
-//adding
-//If: T_IF OpenParan Expression CloseParan OpenScope Scope CloseScope 	{ $$ = createEntry(yylineno, "If", none, none, none, 7, $1, $2, $3, $4, $5, $6, $7);error_taker=$$;}
-//int lineNo , string nodeType, string name, string value, string dataType, int Nchildren, ...
-
-If: T_IF OpenParan Expression CloseParan OpenScope Scope CloseScope 	{$$ = createEntry(yylineno, "If", none, none, none, 1, $6); error_taker = $$;}
-
-//$$ = createEntry(yylineno, "Main", none, none, "int", 1, $6);error_taker = $$;}
-
-
-/*If : Ifhead OpenScope IfBody {$$ = createEntry(yylineno, "If", none, none, none, 3, $1, $2, $3);error_taker = $$;}
-Ifhead: T_IF OpenParan Expression CloseParan {$$ = createEntry(yylineno, "Ifhead", none, none, none, 4, makeOpNode("Ifkey", "if", yylineno), $2, $3, $4);error_taker = $$;}
-
-IfBody: Scope4 CloseScope {$$ = createEntry(yylineno, "IfBody", none, none, none, 2, $1,$2);error_taker = $$;}
-*/
-//
+WhileHead:					T_WHILE OpenParan Expression CloseParan {$$ = createEntry(yylineno, "WhileHead", none, none, none, 4, makeOpNode("WhileKey", "while",yylineno), $2, $3, $4);error_taker = $$;}
 
 
 Switch:						SwitchHead OpenScope SwitchBody {$$ = createEntry(yylineno, "Switch", none, none, none, 3, $1, $2, $3);error_taker = $$;}
@@ -352,7 +340,6 @@ CaseHead:					Case Expression Colon {$$ = createEntry(yylineno, "SwitchBody", no
 
 DefaultHead:				default Colon {$$ = createEntry(yylineno, "SwitchBody", none, none, none, 2, $1, $2);error_taker = $$;}
 
-WhileHead:					T_WHILE OpenParan Expression CloseParan {$$ = createEntry(yylineno, "WhileHead", none, none, none, 4, makeOpNode("WhileKey", "while",yylineno), $2, $3, $4);error_taker = $$;}
 
 
 VariableDefine:				T_TYPE_NAME Ids SemiColon {$$ = createEntry(yylineno, "VariableDefine", none, "0", $1, 3,makeOpNodeType("TypeName", $1, yylineno), $2, $3);error_taker = $$;}
@@ -447,8 +434,8 @@ default:					T_DEFAULT {$$ = createEntry(yylineno, "default", none, none, $1, 0)
 //char ****c;
 int *cindex;
 
-//PrintBody:					T_PRINT_BODY {$$ = createEntry(yylineno, "PrintBody", none, $1, none, 0);error_taker = $$;lastChar = $1; std::cerr<<"--------------------- "<<($1)<<"--------------------\n";}
-vector<vector<pair<string,string>>> c;
+//PrintBody:					T_PRINT_BODY {$$ = createEntry(yylineno, "PrintBody", none, $1, none, 0);error_taker = $$;lastChar = $1; std::std::cerr<<"--------------------- "<<($1)<<"--------------------\n";}
+std::vector<std::vector<std::pair<std::string,std::string>>> c;
 
 
 
@@ -468,10 +455,10 @@ void typeCheck(struct SymbolTableTree*node){
 void typeCheck2(struct SymbolTableTree*node){
 
     list<SymbolTableTree*> q;
-    set<string> a;
-    string b = node->child[0]->dataType;
-    //cerr<<node->child[0]->name<<"\n";
-    //cerr<<mapper[node->child[0]->name].dataType<<"\n";
+    set<std::string> a;
+    std::string b = node->child[0]->dataType;
+    //std::cerr<<node->child[0]->name<<"\n";
+    //std::cerr<<mapper[node->child[0]->name].dataType<<"\n";
     q.push_back(node->child[2]);
     while(!q.empty()){
         SymbolTableTree* x = q.front();
@@ -482,21 +469,21 @@ void typeCheck2(struct SymbolTableTree*node){
 
         }
     }
-    //cerr<<b<<"\n";
+    //std::cerr<<b<<"\n";
     auto x = a.find(b);
     if(x == a.end()){
         bool flag = false;
         if(b=="int"){
 
             for(auto t:a){
-                    if(t.find("float")!=string::npos || t.find("double")!=string::npos){
+                    if(t.find("float")!=std::string::npos || t.find("double")!=std::string::npos){
                         flag = true;
                     }
             }
         }
         else if(b=="char"){
                 for(auto t:a){
-                    if(t.find("float")!=string::npos || t.find("int")!=string::npos || t.find("double")!=string::npos){
+                    if(t.find("float")!=std::string::npos || t.find("int")!=std::string::npos || t.find("double")!=std::string::npos){
                         flag = true;
                     }
                 }
@@ -517,7 +504,7 @@ void typeCheck2(struct SymbolTableTree*node){
         if(a.size()>0){
             if(b == "int"){
                 for(auto t:a){
-                    if(t.find("float")!=string::npos || t.find("double")!=string::npos){
+                    if(t.find("float")!=std::string::npos || t.find("double")!=std::string::npos){
                         char dis[2000];
                         int temp = 0;
                         temp = node->lineNo;
@@ -532,7 +519,7 @@ void typeCheck2(struct SymbolTableTree*node){
             }
             else if(b=="char"){
                 for(auto t:a){
-                    if(t.find("float")!=string::npos || t.find("int")!=string::npos || t.find("double")!=string::npos){
+                    if(t.find("float")!=std::string::npos || t.find("int")!=std::string::npos || t.find("double")!=std::string::npos){
                         char dis[2000];
                         int temp = 0;
                         temp = node->lineNo;
@@ -614,7 +601,7 @@ void trimLeading2(char * str)
 }
 
 
-// int check3(string  name, struct SymbolTableTree *node, int *flag, string &dataType){
+// int check3(std::string  name, struct SymbolTableTree *node, int *flag, std::string &dataType){
 //     for(int i = 0; i<c[node->scope].size(); ++i){
 //         if((name== c[node->scope][i].first)){
 //             *flag=0;
@@ -631,10 +618,10 @@ void check2(struct SymbolTableTree*node){
     if(node->nodeType == "VariableDefine" && node->Nchildren >0 && node->child[0]->name != none){
         //printf("lol7\n");
         while(c.size() < node->scope+1){
-            vector<pair<string, string>> temp;
+            std::vector<std::pair<std::string, std::string>> temp;
             c.push_back(temp);
         }
-        node->child[0]->name = node->child[0]->name +"#"+ string(to_string(node->scope));
+        node->child[0]->name = node->child[0]->name +"#"+ std::string(to_string(node->scope));
 
             if(mapper.find(node->child[0]->name)!=mapper.end()){
                 //printf("In Line %d \n", node->lineNo);
@@ -650,9 +637,9 @@ void check2(struct SymbolTableTree*node){
         //printf("lol3\n");
         struct SymbolTableTree *temp = node;
         while(temp!=NULL && temp->nodeType == "VariableDefine" && temp->child[0]->dataType == none) temp = temp->parent;
-        //pair<string, string> temper;
+        //std::pair<std::string, std::string> temper;
         //printf("lol4\n");
-        //cerr<<"lol ======= "<<temp->dataType<<"\n";
+        //std::cerr<<"lol ======= "<<temp->dataType<<"\n";
         node->child[0]->dataType = temp->dataType;
         // temper.first = node->name;
         // temper.second = node->dataType;
@@ -664,19 +651,19 @@ void check2(struct SymbolTableTree*node){
     
     else if((node->nodeType == "Assign" || node->nodeType== "Operand") && node->Nchildren >0 && node->child[0]->name != none){
         int scopp = -1;
-        if(mapper.find(node->child[0]->name + "#" + string(to_string(node->scope)))!=mapper.end()){
+        if(mapper.find(node->child[0]->name + "#" + std::string(to_string(node->scope)))!=mapper.end()){
             flag=0;
             //node->dataType = c[node->scope][i].second;
-            node->child[0]->name = node->child[0]->name + "#" + string(to_string(node->scope));
+            node->child[0]->name = node->child[0]->name + "#" + std::string(to_string(node->scope));
             scope = node ->scope;
         }
         
         if(flag){ 
             SymbolTableTree * temp = node;
-            while(temp !=NULL && mapper.find(node->child[0]->name + "#" + string(to_string(temp->scope))) == mapper.end()) temp = temp ->parent;
+            while(temp !=NULL && mapper.find(node->child[0]->name + "#" + std::string(to_string(temp->scope))) == mapper.end()) temp = temp ->parent;
             if(temp!=NULL){
                 flag = 0;
-                node->child[0]->name = node->child[0]->name + "#" + string(to_string(temp->scope));
+                node->child[0]->name = node->child[0]->name + "#" + std::string(to_string(temp->scope));
                 //mapper[node->child[0]->name] = *node;
             }
         }
@@ -687,18 +674,18 @@ void check2(struct SymbolTableTree*node){
             yyerror("Variable not declared");
             return;
         }
-        //cerr<<"Hey There "<<mapper[node->child[0]->name].dataType<<" \n";;
+        //std::cerr<<"Hey There "<<mapper[node->child[0]->name].dataType<<" \n";;
         node->child[0]->dataType = mapper[node->child[0]->name].dataType;
         if(node!=NULL && node->Nchildren>2 && node->child[1]->nodeType == "AssignInOp" &&  node->child[2]->nodeType == "Value"){
             node->child[0]->value = node->child[2]->value;
             mapper[node->child[0]->name].value  = node->child[0]->value;
         }
     }
-    else if(node->nodeType == "Identifier" && find(node->name.begin(), node->name.end(), '#') == node->name.end()){
+    else if(node->nodeType == "Identifier" && std::find(node->name.begin(), node->name.end(), '#') == node->name.end()){
         if(node->parent!=NULL && node->parent->nodeType == "VariableDefine"){
-            if(mapper.find(node->name + "#" + string(to_string(node->scope)))!=mapper.end()){
-                node->name = node->name + "#" + string(to_string(node->scope));
-                //cerr<<"------------------------------ "<<(node->name)<<" ---------------------------\n";
+            if(mapper.find(node->name + "#" + std::string(std::__cxx11::to_string(node->scope)))!=mapper.end()){
+                node->name = node->name + "#" + std::string(std::__cxx11::to_string(node->scope));
+                //std::cerr<<"------------------------------ "<<(node->name)<<" ---------------------------\n";
                 mapper[node->name].value  = node->value;
                 mapper[node->name].lineNo  = node->lineNo;
                 auto tmpn = node->parent;
@@ -709,28 +696,28 @@ void check2(struct SymbolTableTree*node){
             }
             else{
                 auto tmpn = node->parent;
-                node->name = node->name + "#" + string(to_string(node->scope));
+                node->name = node->name + "#" + std::string(to_string(node->scope));
                 while(tmpn -> nodeType == "VariableDefine" && tmpn->dataType==none) tmpn = tmpn -> parent;
                 node->dataType = tmpn->dataType;
                 mapper[node->name] = *node;
             }
         }
         else{
-            //cerr<<"Hey There "<<(node->name)<<" \n";
-            if(mapper.find(node->name + "#" + string(to_string(node->scope)))!=mapper.end()){
+            //std::cerr<<"Hey There "<<(node->name)<<" \n";
+            if(mapper.find(node->name + "#" + std::string(to_string(node->scope)))!=mapper.end()){
                 flag=0;
                 //node->dataType = c[node->scope][i].second;
-                node->name = node->name + "#" + string(to_string(node->scope));
+                node->name = node->name + "#" + std::string(to_string(node->scope));
                 node->dataType = mapper[node->name].dataType;
                 scope = node ->scope;
             }
             if(flag){ 
                 SymbolTableTree * temp = node;
-                while(temp !=NULL && mapper.find(node->name + "#" + string(to_string(temp->scope))) == mapper.end()) temp = temp ->parent;
+                while(temp !=NULL && mapper.find(node->name + "#" + std::string(to_string(temp->scope))) == mapper.end()) temp = temp ->parent;
 
                 if(temp!=NULL){
                     flag = 0;
-                    node->name = node->name + "#" + string(to_string(temp->scope));
+                    node->name = node->name + "#" + std::string(to_string(temp->scope));
                     node->dataType = mapper[node->name].dataType;
                     //mapper[node->child[0]->name] = *node;
                 }
@@ -794,7 +781,7 @@ void checkParan2(){
     
     if(iparanStack){
         fflush(stdout);
-        string ttt;
+        std::string ttt;
         char dis[2000];
         int temp = 0;
         if(error_taker){
@@ -807,7 +794,7 @@ void checkParan2(){
         rewind(file);
         while(temp--) fgets(dis, 2000, file);
         trimLeading(dis);
-        fprintf(stderr, "line %d : %s\nError :  MissMatch of open `(` and close `)` paran after ", yylineno, dis);cout<<lastChar<<"\n";
+        fprintf(stderr, "line %d : %s\nError :  MissMatch of open `(` and close `)` paran after ", yylineno, dis);std::cout<<lastChar<<"\n";
     }
 }
 
@@ -815,7 +802,7 @@ void checkScope2(){
     
     if(iscopeStack){
         fflush(stdout);
-        string ttt;
+        std::string ttt;
         char dis[2000];
         int temp = 0;
         if(error_taker){
@@ -828,7 +815,7 @@ void checkScope2(){
         rewind(file);
         while(temp--) fgets(dis, 2000, file);
         trimLeading(dis);
-        fprintf(stderr, "line %d : %s\nError :  MissMatch of open `{` and close `}` scope after ", yylineno, dis);cout<<lastChar<<"\n";
+        fprintf(stderr, "line %d : %s\nError :  MissMatch of open `{` and close `}` scope after ", yylineno, dis);std::cout<<lastChar<<"\n";
     }
 }
 
@@ -836,7 +823,7 @@ void checkSemiColon(){
     
     if(iscopeStack){
         fflush(stdout);
-        string ttt;
+        std::string ttt;
         char dis[2000];
         int temp = 0;
         if(error_taker){
@@ -859,12 +846,12 @@ void checkSemiColon(){
         strcpy(lt,dis+pos);
         if(lastChar[0] == '}') fprintf(stderr, "line %d : %s\nError :  MissMatch of open `{` and close `}` scope\n", yylineno, dis);
         else if(lastChar[0] == '{' || (lastChar=="case") || ("Case"==error_taker->nodeType)){
-            if((error_taker->nodeType== "Value")){fprintf(stderr, "line %d : %s\nError :  Missing ':' after ", yylineno, dis);cout<<error_taker -> value<<"\n";}
+            if((error_taker->nodeType== "Value")){fprintf(stderr, "line %d : %s\nError :  Missing ':' after ", yylineno, dis);std::cout<<error_taker -> value<<"\n";}
             else if (("Case"==error_taker->nodeType)) fprintf(stderr, "line %d : %s\nError :  Missing ':'\n", yylineno, dis);
-            else {fprintf(stderr, "line %d : %s\nError :  Missing ':' after ", yylineno, dis);cout<<error_taker -> name<<"\n";}
+            else {fprintf(stderr, "line %d : %s\nError :  Missing ':' after ", yylineno, dis);std::cout<<error_taker -> name<<"\n";}
         }
-        else if((none!=error_taker->value)){fprintf(stderr, "line %d : %s\nError :  \';\' missing after ", yylineno, dis);cout<<lastChar<<"\n";}
-        else {fprintf(stderr, "line %d : %s\nError :  \';\' missing after ", yylineno, dis);cout<<lastChar<<"\n";}
+        else if((none!=error_taker->value)){fprintf(stderr, "line %d : %s\nError :  \';\' missing after ", yylineno, dis);std::cout<<lastChar<<"\n";}
+        else {fprintf(stderr, "line %d : %s\nError :  \';\' missing after ", yylineno, dis);std::cout<<lastChar<<"\n";}
     }
 }
 
@@ -876,35 +863,35 @@ void check(struct SymbolTableTree*node){
 }
 
 /*
-    ofstream myfile;
+    std::ofstream myfile;
     myfile.open ("example.txt");
     myfile << "Writing this to a file.\n";
     myfile.close();
 */
 void check_icg(struct SymbolTableTree*node){
     std::vector<Quadruple> &icg = get_icg(node, mapper);
-    ofstream myfile;
+    std::ofstream myfile;
     myfile.open("icfg.txt");
-	cerr<<"Oper\t|"<<"Arg1"<<"\t|Arg2"<<"\t|Result\t|"<<endl;
-	myfile<<"Oper|"<<"Arg1"<<"|Arg2"<<"|Result|"<<endl;
+	std::cerr<<"Oper\t|"<<"Arg1"<<"\t|Arg2"<<"\t|Result\t|"<<std::endl;
+	myfile<<"Oper|"<<"Arg1"<<"|Arg2"<<"|Result|"<<std::endl;
     for(auto t : icg){
-        cerr<<(t.op)<<"\t|"<<(t.arg1)<<"\t|"<<(t.arg2)<<"\t|"<<(t.result)<<"\t|\n";
+        std::cerr<<(t.op)<<"\t|"<<(t.arg1)<<"\t|"<<(t.arg2)<<"\t|"<<(t.result)<<"\t|\n";
         myfile<<(t.op)<<"|"<<(t.arg1)<<"|"<<(t.arg2)<<"|"<<(t.result)<<"|\n";
     }
     myfile.close();
 }
 
 void printST(){
-    ofstream myfile;
+    std::ofstream myfile;
     myfile.open("st.txt");
-    cerr<<"\n\n\n"<<("name")<<":\t"<<("nodeType")<<"\t"<<("dataType")<<"\t"<<("value")<<"\n";
+    std::cerr<<"\n\n\n"<<("name")<<":\t"<<("nodeType")<<"\t"<<("dataType")<<"\t"<<("value")<<"\n";
     myfile<<("name")<<":"<<("nodeType")<<""<<("dataType")<<""<<("value")<<"\n";
     for(auto t : mapper){
         if(true){
-            cerr<<(t.first)<<":\t"<<(t.second.nodeType)<<"\t"<<(t.second.dataType)<<"\t\t"<<(t.second.value)<<"\n";
+            std::cerr<<(t.first)<<":\t"<<(t.second.nodeType)<<"\t"<<(t.second.dataType)<<"\t\t"<<(t.second.value)<<"\n";
             myfile<<(t.first)<<":"<<(t.second.nodeType)<<":"<<(t.second.dataType)<<":"<<(t.second.value)<<"\n";}
         else{
-            cerr<<(t.first)<<":\t"<<(t.second.nodeType)<<"\t"<<(t.second.dataType)<<"\t"<<(t.second.value)<<"\n";
+            std::cerr<<(t.first)<<":\t"<<(t.second.nodeType)<<"\t"<<(t.second.dataType)<<"\t"<<(t.second.value)<<"\n";
             myfile<<(t.first)<<":"<<(t.second.nodeType)<<":"<<(t.second.dataType)<<":"<<(t.second.value)<<"\n";}
     }
     myfile.close();
@@ -920,7 +907,7 @@ void yyerror(const char *s)
     else if(iscopeStack && lastChar.length()>0 && lastChar[0] != ';' && error_taker && fromLex) checkSemiColon();
     else if(s){
         fflush(stdout);
-        string ttt;
+        std::string ttt;
         char dis[2000];
         int temp = 0;
         if(error_taker){
@@ -942,7 +929,7 @@ void yyerror(const char *s)
                 fprintf(stderr, "line %d : %s\n%s %s , did you mean %s\n", line_number, dis, s, lexChar, tempstr);
             }
             else if(strcmp(s,"ERROR: `none` super word")==0) fprintf(stderr, "line %d : %s\n%s\n", line_number, dis, s);
-            else {fprintf(stderr, "line %d : %s\nError :  %s  ", line_number, dis, s);cout<<lastChar<<"\n";}
+            else {fprintf(stderr, "line %d : %s\nError :  %s  ", line_number, dis, s);std::cout<<lastChar<<"\n";}
             valid = 0;
         }
         else{
@@ -953,7 +940,7 @@ void yyerror(const char *s)
                 fprintf(stderr, "line %d : %s\n%s %s , did you mean %s\n", line_number, dis, s, lexChar, tempstr);
             }
             else if(strcmp(s,"ERROR: `none` super word")==0) fprintf(stderr, "line %d : %s\n%s\n", line_number, dis, s);
-            else if(lastChar.length()>0) {fprintf(stderr, "line %d : %s\nError :  %s -- ", line_number, dis, s); cout<<lastChar<<"\n\n";}
+            else if(lastChar.length()>0) {fprintf(stderr, "line %d : %s\nError :  %s -- ", line_number, dis, s); std::cout<<lastChar<<"\n\n";}
             else fprintf(stderr, "line %d : %s\nError :  %s\n", line_number, dis, s);
             valid = 0;
         }
@@ -972,7 +959,7 @@ int main(int argc,char **argv)
         file = fopen(argv[1], "r");
         if (!file)
         {
-            fprintf(stderr, "No file");
+            fprintf(stderr, "No file nibba");
             exit(1);
         }
         yyin=fopen(argv[1], "r");;
