@@ -53,6 +53,7 @@ struct ast{
         std::string result;
         Quadruple(std::string _op, std::string _arg1, std::string _arg2, std::string _result): op(_op), arg1(_arg1), arg2(_arg2), result(_result){};
     };
+     void get_icg_for_if();
     void get_icg_rec(SymbolTableTree *, std::vector<Quadruple> &icg, std::map<string, SymbolTableTree> &mapper);
     std::string get_icg_for_exp(SymbolTableTree *node, std::vector<Quadruple> &icg, std::map<string, SymbolTableTree> &mapper);
     void get_icg_for_var_def(SymbolTableTree *node, std::vector<Quadruple> &icg, std::map<string, SymbolTableTree> &mapper);
@@ -83,6 +84,10 @@ struct ast{
         if(node->nodeType=="Expression"){
             // cout<<"lol3\n";
             get_icg_for_exp(node,icg, mapper);
+        }
+        else if(node->nodeType=="If"){
+            // cout<<"lol4\n";
+            get_icg_for_if();
         }
         else if(node->nodeType=="While"){
             // cout<<"lol4\n";
@@ -288,7 +293,9 @@ struct ast{
         }
         // cout<<"lol200\n";
     }
-
+    
+    void get_icg_for_if()
+    {}
     void get_icg_for_while(SymbolTableTree *node, std::vector<Quadruple> &icg, std::map<string, SymbolTableTree> &mapper){
         std::string tmpv = get_icg_for_exp(node -> child[0] -> child[2], icg, mapper);
         auto l1 = "l"+std::to_string(label_counter++);
