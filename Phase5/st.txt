@@ -1,0 +1,5 @@
+name:nodeTypedataTypevalue
+a#1:Identifier:int:0
+i#1:Identifier:int:0
+t0:TempVariable:long:0
+t1:TempVariable:long:0
