@@ -100,10 +100,8 @@ printBody “%d”|“%ld”|“%lld”|“%f”|“%lf”|“%s”|“%c”|“
 "int"	{yylval.str = strdup(yytext) ;return T_TINT;}
 "double"|"long"|"long long"|"float"|"char"|"long int"|"long long int"|"long float" {yylval.str = strdup(yytext) ;return T_TYPE_NAME;}
 
-
+if   {yylval.str = strdup(yytext) ;return T_IF;}
 for	{yylval.str = strdup(yytext) ;return T_WHILE;}
-if	{yylval.str = strdup(yytext) ;return T_IF;}
-else	{yylval.str = strdup(yytext) ;return T_ELSE;}
 switch	{yylval.str = strdup(yytext) ;return T_SWITCH;}
 case	{yylval.str = strdup(yytext) ;return T_CASE;}
 default	{yylval.str = strdup(yytext) ;return T_DEFAULT;}
