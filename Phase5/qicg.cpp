@@ -86,9 +86,12 @@ struct ast{
             get_icg_for_exp(node,icg, mapper);
         }
         else if(node->nodeType=="If"){
-            // cout<<"lol4\n";
+            //cout<<"lol4\n";
+            //std::cout<<"l1"<<l1<<" l2"<<l2<<endl;
+            
             get_icg_for_if(node,icg, mapper);
         }
+
         else if(node->nodeType=="While"){
             // cout<<"lol4\n";
             get_icg_for_while(node,icg, mapper);
@@ -296,16 +299,47 @@ struct ast{
     
     void get_icg_for_if(SymbolTableTree *node, std::vector<Quadruple> &icg, std::map<string, SymbolTableTree> &mapper)
     {
-        std::string tmpv = get_icg_for_exp(node -> child[0] -> child[2], icg, mapper);
-        auto l1 = "l"+std::to_string(label_counter++); //else
-        stk1.push_back(l1);
-        Quadruple newq("ifFalse", tmpv, "", l1);
-        icg.push_back(newq);
-        get_icg_rec(node->child[1], icg, mapper);
-        Quadruple newl("Lable", "", "", l1);
-        icg.push_back(newl);
-        stk1.pop_back();
-    }
+        
+        if(node -> Nchildren == 2) 
+        {
+            std::string tmpv = get_icg_for_exp(node -> child[0] -> child[2], icg, mapper);
+            auto l1 = "l"+std::to_string(label_counter++); //else
+            stk1.push_back(l1);
+            Quadruple newq("ifFalse", tmpv, "", l1);
+            icg.push_back(newq);
+            get_icg_rec(node->child[1], icg, mapper);
+            Quadruple newl("Lable", "", "", l1);
+            icg.push_back(newl);
+            stk1.pop_back();
+        }
+       
+        else if(node -> Nchildren == 3) 
+        {
+            
+            std::string tmpv = get_icg_for_exp(node -> child[0] -> child[2], icg, mapper);
+            auto l1 = "l"+std::to_string(label_counter++); //else
+            auto l2 = "l"+std::to_string(label_counter++); 
+            std::cout<<"l1"<<l1<<" l2"<<l2<<endl;
+            stk1.push_back(l1);
+            stk2.push_back(l2);
+            Quadruple newq("ifFalse", tmpv, "", l2);
+            icg.push_back(newq);
+            get_icg_rec(node->child[1], icg, mapper);
+            Quadruple newg("goto", "", "", l1);
+            icg.push_back(newg);
+
+            Quadruple newl("Lable", "", "", l2);
+            icg.push_back(newl);
+            get_icg_rec(node->child[2]->child[1], icg, mapper);
+            Quadruple newp("Lable", "", "", l1);
+            icg.push_back(newp);
+            stk1.pop_back();
+            stk2.pop_back();
+        }
+        
+       } 
+    
+    
     void get_icg_for_while(SymbolTableTree *node, std::vector<Quadruple> &icg, std::map<string, SymbolTableTree> &mapper){
         std::string tmpv = get_icg_for_exp(node -> child[0] -> child[2], icg, mapper);
         auto l1 = "l"+std::to_string(label_counter++);
@@ -341,7 +375,7 @@ struct ast{
                 Quadruple newl("Lable", "", "", label);
                 icg.push_back(newl);
             }
-            get_icg_rec(node->child[1], icg, mapper);
+            get_icg_rec(node->child[1], icg, mapper); //scope4
             Quadruple newg("goto", "", "", l2);
             icg.push_back(newg);
             Quadruple newl("Lable", "", "", l1);
@@ -361,11 +395,11 @@ struct ast{
     }
 
     void get_icg_for_switch(SymbolTableTree *node, std::vector<Quadruple> &icg, std::map<string, SymbolTableTree> &mapper){
-        std::string tmpv = get_icg_for_exp(node -> child[0] -> child[2], icg, mapper);
+        std::string tmpv = get_icg_for_exp(node -> child[0] -> child[2], icg, mapper); //exp
         auto l2 = "l"+std::to_string(label_counter++);
         stk2.push_back(l2);
         std::string tmplabel = "";
-        get_icg_for_switch_case(node->child[2], icg, tmpv, tmplabel, mapper);
+        get_icg_for_switch_case(node->child[2], icg, tmpv, tmplabel, mapper); //switch body ,condtn
         Quadruple newl2("Lable", "", "", l2);
         icg.push_back(newl2);
         stk2.pop_back();
