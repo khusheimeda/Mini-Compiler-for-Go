@@ -69,7 +69,7 @@ int scopeChildren = 0;
 map<std::string, SymbolTableTree> mapper;
 map<std::string, int> mm;
 void DisplaySymbolTable(struct SymbolTableTree* node){
-
+    
     if(node !=NULL){
         int nu = mm[node->nodeType]++;
         std::cout<<(node->nodeType+"("+to_string(nu)+")")<<"\n";
@@ -217,6 +217,7 @@ void printST();
 %token <str> T_OPEN_SCOPE;
 %token <str> T_IDENTIFIER;
 %token <str> T_IF;
+%token <str> T_ELSE;
 %token <str> T_WHILE;
 %token <str> T_SWITCH;
 %token <str> T_CASE;
@@ -251,7 +252,7 @@ void printST();
 
 
 %type<stt> CPro Main BasicScope Scope VariableDefine Expression IOStatement Scope2 Scope3 LoopScope2 Ids AssignOp AssignInOp Assign2 Expression4 error
-%type<stt> If IfHead While WhileHead Switch SwitchBody SwitchHead CaseHead DefaultHead OpenScope OpenParan CloseScope Expression3 PrintInsider Operation
+%type<stt> If IfHead ElseBody While WhileHead Switch SwitchBody SwitchHead CaseHead DefaultHead OpenScope OpenParan CloseScope Expression3 PrintInsider Operation
 %type<stt> CloseParan BinaryFOp Colon SemiColon Comma Case default Value Number Unary Assign Operand UnaryOp Id Scope4
 
 
@@ -305,10 +306,14 @@ Scope3:                     OpenScope Scope4 CloseScope {$$ = createEntry(yyline
 LoopScope2:					Scope2 {$$ = $1;}
 
 
-If:                         IfHead OpenScope CloseScope {$$ = createEntry(yylineno, "If", none, none, none, 3, $1, $2,$3);error_taker = $$;}
+If:                         IfHead Scope3 {$$ = createEntry(yylineno, "If", none, none, none, 2, $1, $2);error_taker = $$;}
+                            | IfHead Scope3 ElseBody {$$ = createEntry(yylineno, "If", none, none, none, 3, $1, $2,$3);error_taker = $$;}
 
 IfHead:                     T_IF OpenParan Expression CloseParan {$$ = createEntry(yylineno, "IfHead", none, none, none, 4, makeOpNode("IfKey", "If",yylineno), $2, $3, $4);error_taker = $$;}
-                   
+
+ElseBody:                    T_ELSE Scope3 {$$ = createEntry(yylineno, "ElseBody", none, none, none, 2, makeOpNode("ElseKey", "else",yylineno) ,$2);error_taker = $$;}
+
+
 
 While:						WhileHead Scope3 {$$ = createEntry(yylineno, "While", none, none, none, 2, $1, $2);error_taker = $$;}
     					|	WhileHead OpenScope CloseScope {$$ = createEntry(yylineno, "While", none, none, none, 3, $1, $2, $3);error_taker = $$;}
