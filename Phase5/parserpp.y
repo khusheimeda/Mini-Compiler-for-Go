@@ -320,8 +320,9 @@ While:						WhileHead Scope3 {$$ = createEntry(yylineno, "While", none, none, no
 						|	WhileHead LoopScope2 {$$ = createEntry(yylineno, "While", none, none, none, 2, $1, $2);error_taker = $$;}
 
 WhileHead:					T_WHILE OpenParan Expression CloseParan {$$ = createEntry(yylineno, "WhileHead", none, none, none, 4, makeOpNode("WhileKey", "while",yylineno), $2, $3, $4);error_taker = $$;}
-
-
+                       |T_WHILE OpenParan Assign SemiColon Expression SemiColon CloseParan {$$ = createEntry(yylineno, "WhileHead", none, none, none, 7, makeOpNode("WhileKey", "while",yylineno), $2, $3, $4, $5, $6, $7);error_taker = $$;}
+                       |T_WHILE OpenParan Assign SemiColon Expression SemiColon Expression CloseParan {$$ = createEntry(yylineno, "WhileHead", none, none, none, 8, makeOpNode("WhileKey", "while",yylineno), $2, $3, $4, $5, $6, $7,$8);error_taker = $$;}
+                        
 Switch:						SwitchHead OpenScope SwitchBody {$$ = createEntry(yylineno, "Switch", none, none, none, 3, $1, $2, $3);error_taker = $$;}
 
 
@@ -420,7 +421,7 @@ OpenParan:                  T_OPEN_PARAN {$$ = createEntry(yylineno, "OpenParan"
 CloseParan:                 T_CLOSE_PARAN {$$ = createEntry(yylineno, "CloseParan", none, $1, none, 0);error_taker = $$;lastChar = $1;checkParan(')');}
 AssignInOp:                 T_ASSIGN_INITIALIZE {$$ = createEntry(yylineno, "AssignInOp", none, $1, none, 0);error_taker = $$;lastChar = $1;}
 AssignOp:                   T_ASSIGN_OPERATOR {$$ = createEntry(yylineno, "AssignOp", none, $1, none, 0);error_taker = $$;lastChar = $1;}
-SemiColon:                  T_SEMI_COLON {$$ = createEntry(yylineno, "SemiColon", none, $1, none, 0);error_taker = $$;lastChar = $1; checkParan2();}
+SemiColon:                  T_SEMI_COLON {$$ = createEntry(yylineno, "SemiColon", none, $1, none, 0);error_taker = $$;lastChar = $1;}//checkParan2();}
 Colon:                      T_COLON {$$ = createEntry(yylineno, "Colon", none, $1, none, 0);error_taker = $$;lastChar = $1;}
 Comma:                      T_COMMA {$$ = createEntry(yylineno, "Comma", none, $1, none, 0);error_taker = $$;lastChar = $1;}
 OpenScope:                  T_OPEN_SCOPE {$$ = createEntry(yylineno, "OpenScope", none, $1, none, 0);checkScope('{');scope = max_scope +1;max_scope++;scopeChildren++;error_taker = $$;lastChar = $1;checkParan2();}
