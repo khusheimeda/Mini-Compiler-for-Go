@@ -8,6 +8,7 @@ operator = dict()
 res = []
 op = ['+', '*']
 
+
 def in_assign_lists(ele):
     for i in assign:
         if ele in assign[i]:
@@ -22,6 +23,7 @@ def same_tuple(arg1, symbol, arg2):
     else:
         return None
 
+
 for line in data:
     l_copy = line
     line = line.split('|')
@@ -35,6 +37,8 @@ for line in data:
                 assign[line[1]] = [line[3]]
             res.append(l_copy)
 
+            # res.append('\t|'.join([line[0], line[1], '', assign[line[1]][0]]))
+
         # result is a variable
         elif line[3].find('#') != -1:
             # temporary that variable is equal to is not equal to another temporary
@@ -42,7 +46,7 @@ for line in data:
                 res.append(l_copy)
             # temporary that variable is equal to is equal to another temporary
             else:
-                res.append('|\t'.join([line[0], operator[line[1]], '', line[3]]))
+                res.append('|'.join([line[0], operator[line[1]], '', line[3]]))
 
     elif line[0] in op:
         arg1 = in_assign_lists(line[1])
@@ -54,7 +58,7 @@ for line in data:
             # tuple exists in operator
             if operator_key is not None:
                 operator[line[3]] = operator_key
-                res.append('|\t'.join(['=', operator[line[3]], '', line[3]]))
+                res.append('|'.join(['=', operator[line[3]], '', line[3]]))
             # temporary that variable is equal to is equal to another temporary
             else:
                 operator[line[3]] = (arg1, line[0], arg2)
@@ -69,7 +73,7 @@ for line in data:
                 # ar2 is same as another temporary variable
                 else:
                     operator[line[3]] = (arg1, line[0], operator[line[2]])
-                    res.append('|\t'.join([line[0], assign[arg1][0], operator[line[2]], line[3]]))
+                    res.append('|'.join([line[0], assign[arg1][0], operator[line[2]], line[3]]))
             else:
                 operator[line[3]] = (arg1, line[0], line[2])
                 res.append(l_copy)
@@ -83,7 +87,7 @@ for line in data:
                 # ar1 is same as another temporary variable
                 else:
                     operator[line[3]] = (operator[line[1]], line[0], arg2)
-                    res.append('|\t'.join([line[0], operator[line[1]], assign[arg2][0], line[3]]))
+                    res.append('|'.join([line[0], operator[line[1]], assign[arg2][0], line[3]]))
             else:
                 operator[line[3]] = (line[1], line[0], arg2)
                 res.append(l_copy)
@@ -114,21 +118,23 @@ for line in data:
                 res.append('|'.join([line[0], zero, two, line[3]]))
             '''
             operator[line[3]] = (zero, line[0], two)
-            res.append('|\t'.join([line[0], zero, two, line[3]]))
+            res.append('|'.join([line[0], zero, two, line[3]]))
+
+        if type(operator[line[3]]) is tuple:
+            # print('for tuple', operator[line[3]])
+            for i in list(operator.keys())[:-1]:
+                if operator[i] == operator[line[3]]:
+                    # print('same i', i, operator[i])
+                    operator[line[3]] = i
+                    res[-1] = ('|'.join(['=', i, '', line[3]]))
+                    break
 
     else:
         res.append(l_copy)
+    # print('assign', assign)
+    # print('operator', operator)
+    # print()
 
 print('res')
 for quad in res:
     print(quad)
-    
-
-
-
-
-
-
-
-
-
