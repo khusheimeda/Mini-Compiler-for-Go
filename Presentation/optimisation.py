@@ -1,3 +1,9 @@
+print("You can view 4 different optimization!")
+print("Please enter your choice")
+print("1.To view code motion: Please enter code_motion")
+print("2.To view dead code elimination: Please enter dead_code")
+print("3.To view common subexpression elimination: Please enter sub_exp")
+print("4.To view constant folding and propogation: Please enter constfp")
 op=input()
 
 import loop_invar_codeop as LIC
